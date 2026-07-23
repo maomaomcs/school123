@@ -25,14 +25,9 @@
         </div>
       </el-form-item>
       <el-form-item label="正文">
-        <div style="width:100%">
-          <div class="content-toolbar">
-            <el-upload :action="uploadUrl" :headers="headers" :show-file-list="false" accept="image/*" :on-success="onInsertImg">
-              <el-button size="small" :icon="Picture">插入图片</el-button>
-            </el-upload>
-            <span class="hint">支持 HTML 标签。段落用 &lt;p&gt;...&lt;/p&gt;,插入图片会追加到正文末尾。</span>
-          </div>
-          <el-input v-model="form.content" type="textarea" :rows="14" placeholder="<p>正文内容...</p>" />
+        <div class="editor-wrap">
+          <Toolbar :editor="editorRef" :defaultConfig="toolbarConfig" mode="default" class="editor-toolbar" />
+          <Editor v-model="form.content" :defaultConfig="editorConfig" mode="default" class="editor-body" @onCreated="handleCreated" />
         </div>
       </el-form-item>
       <el-form-item label="作者/来源">
@@ -59,10 +54,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, shallowRef, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Picture } from '@element-plus/icons-vue'
+import '@wangeditor/editor/dist/css/style.css'
+import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { adminGetArticle, adminCreateArticle, adminUpdateArticle, getConfig, uploadUrl } from '../../api'
 
 const route = useRoute()
@@ -73,6 +69,36 @@ const saving = ref(false)
 const cats = ref([])
 const headers = { 'X-Admin-Token': localStorage.getItem('admin_token') }
 
+// ---- 富文本编辑器(wangEditor)----
+const editorRef = shallowRef()
+const toolbarConfig = {}
+const editorConfig = {
+  placeholder: '在此撰写正文,可插入图片、设置标题/加粗/对齐/列表等…',
+  MENU_CONF: {
+    uploadImage: {
+      // 复用后台上传接口 /api/admin/upload,返回 {url}
+      async customUpload(file, insertFn) {
+        const fd = new FormData()
+        fd.append('file', file)
+        try {
+          const res = await fetch(uploadUrl, {
+            method: 'POST',
+            headers: { 'X-Admin-Token': localStorage.getItem('admin_token') },
+            body: fd,
+          })
+          const data = await res.json()
+          if (data && data.url) insertFn(data.url, file.name, data.url)
+          else ElMessage.error('图片上传失败')
+        } catch (e) {
+          ElMessage.error('图片上传失败:' + e.message)
+        }
+      },
+    },
+  },
+}
+function handleCreated(editor) { editorRef.value = editor }
+onBeforeUnmount(() => { const e = editorRef.value; if (e) e.destroy() })
+
 const isAdmin = (localStorage.getItem('admin_role') || 'EDITOR') === 'ADMIN'
 
 const form = reactive({
@@ -81,10 +107,6 @@ const form = reactive({
 })
 
 function onCover(res) { form.cover = res.url; ElMessage.success('封面已上传') }
-function onInsertImg(res) {
-  form.content += `\n<p style="text-align:center"><img src="${res.url}" /></p>`
-  ElMessage.success('图片已插入正文末尾')
-}
 
 async function save(action) {
   if (!form.title || !form.category) { ElMessage.warning('请填写标题和栏目'); return }
@@ -113,8 +135,9 @@ onMounted(async () => {
 .edit-page { background: #fff; border-radius: 10px; padding: 24px; }
 .cover-box { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .cover-preview { width: 160px; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; }
-.content-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
-.hint { font-size: 12px; color: #a89e91; }
+.editor-wrap { width: 100%; border: 1px solid #dcdfe6; border-radius: 6px; }
+.editor-toolbar { border-bottom: 1px solid #e4e7ed; background: #fafafa; }
+.editor-body { min-height: 380px; overflow-y: auto; }
 .editor-tip { font-size: 12px; color: #a89e91; margin: 8px 0 0 90px; }
 @media (max-width: 768px) {
   .edit-page { padding: 14px; }
