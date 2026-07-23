@@ -55,8 +55,8 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, shallowRef, onBeforeUnmount } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import '@wangeditor/editor/dist/css/style.css'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { adminGetArticle, adminCreateArticle, adminUpdateArticle, getConfig, uploadUrl } from '../../api'
@@ -106,6 +106,15 @@ const form = reactive({
   author: '校办', source: '石室联中132', top: false, status: '', rejectReason: '',
 })
 
+// 未保存修改保护
+let snapshot = ''
+function snapKey() {
+  const { title, category, summary, cover, content, author, source, top } = form
+  return JSON.stringify({ title, category, summary, cover, content, author, source, top })
+}
+function markClean() { snapshot = snapKey() }
+const dirty = computed(() => snapshot !== '' && snapKey() !== snapshot)
+
 function onCover(res) { form.cover = res.url; ElMessage.success('封面已上传') }
 
 async function save(action) {
@@ -115,6 +124,7 @@ async function save(action) {
     if (isNew.value) await adminCreateArticle({ ...form }, action)
     else await adminUpdateArticle(route.params.id, { ...form }, action)
     ElMessage.success(action === 'submit' ? '已提交审核' : (action === 'publish' ? '已发布' : '已保存草稿'))
+    markClean() // 已保存,离开不再提醒
     router.push('/admin/articles')
   } finally { saving.value = false }
 }
@@ -128,6 +138,18 @@ onMounted(async () => {
       Object.assign(form, a)
     } finally { loading.value = false }
   }
+  // 等编辑器把初始 content 同步后再记录基线
+  setTimeout(markClean, 300)
+})
+
+onBeforeRouteLeave(async () => {
+  if (!dirty.value) return true
+  try {
+    await ElMessageBox.confirm('有未保存的修改,确定离开?', '提示', {
+      type: 'warning', confirmButtonText: '放弃并离开', cancelButtonText: '继续编辑',
+    })
+    return true
+  } catch (e) { return false }
 })
 </script>
 

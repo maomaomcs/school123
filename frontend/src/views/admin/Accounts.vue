@@ -78,13 +78,16 @@ async function toggle(row, v) {
   catch (e) { load() }
 }
 async function resetPwd(row) {
-  const { value } = await ElMessageBox.prompt(`为「${row.displayName || row.username}」设置新密码`, '重置密码', {
-    inputType: 'password', inputValidator: (v) => (v && v.length >= 6 ? true : '至少6位'),
-  })
+  let value
+  try {
+    ({ value } = await ElMessageBox.prompt(`为「${row.displayName || row.username}」设置新密码`, '重置密码', {
+      inputType: 'password', inputValidator: (v) => (v && v.length >= 6 ? true : '至少6位'),
+    }))
+  } catch (e) { return }
   await adminResetAccountPwd(row.id, value); ElMessage.success('密码已重置')
 }
 async function del(row) {
-  await ElMessageBox.confirm(`确定删除账号「${row.username}」?`, '提示', { type: 'warning' })
+  try { await ElMessageBox.confirm(`确定删除账号「${row.username}」?`, '提示', { type: 'warning' }) } catch (e) { return }
   await adminDeleteAccount(row.id); ElMessage.success('已删除'); load()
 }
 onMounted(load)

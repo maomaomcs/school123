@@ -89,18 +89,21 @@ function reload() { page.value = 1; load() }
 function onPage(p) { page.value = p; load() }
 
 async function approve(row) {
-  await ElMessageBox.confirm(`通过并发布「${row.title}」?`, '审核', { type: 'success' })
+  try { await ElMessageBox.confirm(`通过并发布「${row.title}」?`, '审核', { type: 'success' }) } catch (e) { return }
   await approveArticle(row.id); ElMessage.success('已发布'); load()
 }
 async function reject(row) {
-  const { value } = await ElMessageBox.prompt('请填写驳回理由(投稿人可看到)', '驳回投稿', {
-    inputType: 'textarea', inputPlaceholder: '如:标题需修改、内容需补充配图…',
-    inputValidator: (v) => (v && v.trim() ? true : '请填写理由'),
-  })
+  let value
+  try {
+    ({ value } = await ElMessageBox.prompt('请填写驳回理由(投稿人可看到)', '驳回投稿', {
+      inputType: 'textarea', inputPlaceholder: '如:标题需修改、内容需补充配图…',
+      inputValidator: (v) => (v && v.trim() ? true : '请填写理由'),
+    }))
+  } catch (e) { return }
   await rejectArticle(row.id, value.trim()); ElMessage.success('已驳回'); load()
 }
 async function del(row) {
-  await ElMessageBox.confirm(`确定删除「${row.title}」?`, '提示', { type: 'warning' })
+  try { await ElMessageBox.confirm(`确定删除「${row.title}」?`, '提示', { type: 'warning' }) } catch (e) { return }
   await adminDeleteArticle(row.id); ElMessage.success('已删除'); load()
 }
 

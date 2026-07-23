@@ -80,7 +80,7 @@ async function save() {
   } finally { saving.value = false }
 }
 async function del(row) {
-  await ElMessageBox.confirm('确定删除该轮播图?', '提示', { type: 'warning' })
+  try { await ElMessageBox.confirm('确定删除该轮播图?', '提示', { type: 'warning' }) } catch (e) { return }
   await adminDeleteBanner(row.id); ElMessage.success('已删除'); load()
 }
 onMounted(load)
