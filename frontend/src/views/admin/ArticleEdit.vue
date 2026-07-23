@@ -111,9 +111,16 @@ onMounted(async () => {
 
 <style scoped>
 .edit-page { background: #fff; border-radius: 10px; padding: 24px; }
-.cover-box { display: flex; align-items: center; gap: 14px; }
+.cover-box { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .cover-preview { width: 160px; height: 100px; object-fit: cover; border-radius: 6px; border: 1px solid #eee; }
-.content-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.content-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
 .hint { font-size: 12px; color: #a89e91; }
 .editor-tip { font-size: 12px; color: #a89e91; margin: 8px 0 0 90px; }
+@media (max-width: 768px) {
+  .edit-page { padding: 14px; }
+  .edit-page :deep(.el-form) { max-width: 100% !important; }
+  .edit-page :deep(.el-form-item__content) .el-input,
+  .edit-page :deep(.el-form-item__content) .el-select { width: 100% !important; margin-right: 0 !important; }
+  .editor-tip { margin-left: 0; }
+}
 </style>

@@ -111,7 +111,11 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.bar { display: flex; gap: 12px; margin-bottom: 16px; }
+.bar { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
 .bar .el-button { margin-left: auto; }
 .pager { display: flex; justify-content: flex-end; margin-top: 16px; }
+@media (max-width: 768px) {
+  .bar .el-button { margin-left: 0; }
+  .pager { justify-content: center; }
+}
 </style>
