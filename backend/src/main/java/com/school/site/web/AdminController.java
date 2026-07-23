@@ -99,14 +99,17 @@ public class AdminController {
     public Map<String, Object> articles(HttpServletRequest req,
                                         @RequestParam(required = false) String category,
                                         @RequestParam(required = false) String status,
+                                        @RequestParam(required = false, name = "q") String keyword,
                                         @RequestParam(defaultValue = "1") int page,
                                         @RequestParam(defaultValue = "10") int size) {
         AdminUser me = current(req);
         final boolean editor = !isAdmin(me);
-        Specification<Article> spec = (root, q, cb) -> {
+        final String kw = keyword == null ? "" : keyword.trim();
+        Specification<Article> spec = (root, query, cb) -> {
             List<Predicate> ps = new ArrayList<>();
             if (StringUtils.hasText(category)) ps.add(cb.equal(root.get("category"), category));
             if (StringUtils.hasText(status)) ps.add(cb.equal(root.get("status"), status));
+            if (StringUtils.hasText(kw)) ps.add(cb.like(root.get("title"), "%" + kw + "%"));
             if (editor) ps.add(cb.equal(root.get("authorId"), me.getId())); // 编辑只看自己的
             return cb.and(ps.toArray(new Predicate[0]));
         };

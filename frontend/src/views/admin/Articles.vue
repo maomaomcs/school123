@@ -10,6 +10,10 @@
         <el-option label="草稿" value="draft" />
         <el-option label="已驳回" value="rejected" />
       </el-select>
+      <el-input v-model="keyword" placeholder="搜索标题" clearable style="width:200px"
+        @keyup.enter="reload" @clear="reload">
+        <template #append><el-button :icon="SearchIcon" @click="reload" /></template>
+      </el-input>
       <el-button type="primary" :icon="Plus" @click="$router.push('/admin/articles/new')">
         {{ isAdmin ? '发布文章' : '写投稿' }}
       </el-button>
@@ -61,7 +65,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, Warning } from '@element-plus/icons-vue'
+import { Plus, Warning, Search as SearchIcon } from '@element-plus/icons-vue'
 import { adminArticles, adminDeleteArticle, approveArticle, rejectArticle, getConfig } from '../../api'
 
 const data = ref({ list: [], total: 0 })
@@ -69,6 +73,7 @@ const loading = ref(false)
 const page = ref(1)
 const category = ref('')
 const status = ref('')
+const keyword = ref('')
 const cats = ref([])
 const pendingCount = ref(0)
 const isAdmin = (localStorage.getItem('admin_role') || 'EDITOR') === 'ADMIN'
@@ -81,7 +86,7 @@ function stType(s) { return { draft: 'info', pending: 'warning', published: 'suc
 async function load() {
   loading.value = true
   try {
-    data.value = await adminArticles({ category: category.value, status: status.value, page: page.value, size: 10 })
+    data.value = await adminArticles({ category: category.value, status: status.value, q: keyword.value, page: page.value, size: 10 })
     pendingCount.value = data.value.pendingCount || 0
   } finally { loading.value = false }
 }

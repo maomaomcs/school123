@@ -49,6 +49,7 @@ export const adminMe = () => api.get('/admin/me')
 export const changePassword = (data) => api.post('/admin/change-password', data)
 
 export const adminArticles = (params) => api.get('/admin/articles', { params })
+// params 可含 { category, status, q, page, size }
 export const adminGetArticle = (id) => api.get(`/admin/articles/${id}`)
 export const adminCreateArticle = (data, action = 'draft') => api.post('/admin/articles', data, { params: { action } })
 export const adminUpdateArticle = (id, data, action = 'draft') => api.put(`/admin/articles/${id}`, data, { params: { action } })

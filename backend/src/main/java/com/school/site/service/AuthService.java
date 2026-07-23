@@ -1,22 +1,24 @@
 package com.school.site.service;
 
 import com.school.site.entity.AdminUser;
+import com.school.site.entity.AuthToken;
 import com.school.site.repository.AdminUserRepository;
+import com.school.site.repository.AuthTokenRepository;
 import com.school.site.web.ApiException;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 管理员/编辑登录 + 令牌校验 + 账号管理。令牌存内存(重启需重新登录)。
+ * 管理员/编辑登录 + 令牌校验 + 账号管理。令牌落库(auth_token 表),服务重启/发版后不掉线。
  * 角色:ADMIN(校宣) / EDITOR(部门投稿)。
  */
 @Service
@@ -24,10 +26,12 @@ public class AuthService {
 
     public static final String ROLE_ADMIN = "ADMIN";
     public static final String ROLE_EDITOR = "EDITOR";
+    /** 令牌有效期(天) */
+    private static final int TOKEN_TTL_DAYS = 30;
 
     private final AdminUserRepository adminRepo;
+    private final AuthTokenRepository tokenRepo;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    private final Map<String, String> tokens = new ConcurrentHashMap<>(); // token -> username
     private final SecureRandom random = new SecureRandom();
 
     @Value("${app.init-admin-username}")
@@ -35,8 +39,9 @@ public class AuthService {
     @Value("${app.init-admin-password}")
     private String initPass;
 
-    public AuthService(AdminUserRepository adminRepo) {
+    public AuthService(AdminUserRepository adminRepo, AuthTokenRepository tokenRepo) {
         this.adminRepo = adminRepo;
+        this.tokenRepo = tokenRepo;
     }
 
     @PostConstruct
@@ -55,6 +60,7 @@ public class AuthService {
         adminRepo.save(u);
     }
 
+    @Transactional
     public String login(String username, String password) {
         AdminUser u = adminRepo.findByUsername(username)
                 .orElseThrow(() -> new ApiException(401, "用户名或密码错误"));
@@ -62,15 +68,26 @@ public class AuthService {
             throw new ApiException(401, "用户名或密码错误");
         }
         if (!u.isEnabled()) throw new ApiException(403, "账号已被停用,请联系校宣管理员");
+        // 顺手清理过期令牌
+        try { tokenRepo.deleteByExpiresAtBefore(LocalDateTime.now()); } catch (Exception ignored) {}
         byte[] buf = new byte[24];
         random.nextBytes(buf);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(buf);
-        tokens.put(token, username);
+        AuthToken t = new AuthToken();
+        t.setToken(token);
+        t.setUsername(username);
+        t.setCreatedAt(LocalDateTime.now());
+        t.setExpiresAt(LocalDateTime.now().plusDays(TOKEN_TTL_DAYS));
+        tokenRepo.save(t);
         return token;
     }
 
     public String usernameOf(String token) {
-        return token == null ? null : tokens.get(token);
+        if (token == null) return null;
+        return tokenRepo.findByToken(token)
+                .filter(t -> t.getExpiresAt() == null || t.getExpiresAt().isAfter(LocalDateTime.now()))
+                .map(AuthToken::getUsername)
+                .orElse(null);
     }
 
     public boolean valid(String token) {
@@ -78,8 +95,9 @@ public class AuthService {
         return u != null && adminRepo.findByUsername(u).map(AdminUser::isEnabled).orElse(false);
     }
 
+    @Transactional
     public void logout(String token) {
-        if (token != null) tokens.remove(token);
+        if (token != null) tokenRepo.deleteByToken(token);
     }
 
     public AdminUser getByUsername(String username) {
