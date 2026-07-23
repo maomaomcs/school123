@@ -97,9 +97,25 @@ a:hover { color: var(--shishi-red-deep); }
 }
 
 /* 富文本内容 */
-.rich-content { line-height: 1.9; font-size: 16px; color: #3a332c; }
+.rich-content { line-height: 1.9; font-size: 16px; color: #3a332c; overflow-wrap: break-word; word-break: break-word; }
 .rich-content p { margin: 0 0 14px; text-indent: 2em; }
 .rich-content img { max-width: 100%; height: auto; border-radius: 6px; }
+/* 防止粘贴内容里的视频/表格/代码块横向撑破版心 */
+.rich-content iframe,
+.rich-content video { max-width: 100%; }
+.rich-content table { max-width: 100%; display: block; overflow-x: auto; border-collapse: collapse; }
+.rich-content pre { max-width: 100%; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
+
+/* 无障碍大字版(长辈友好):放大阅读区文字 */
+html.a11y-large .rich-content { font-size: 19px; line-height: 2.05; }
+html.a11y-large .nl-title,
+html.a11y-large .notice-title,
+html.a11y-large .art-title { font-size: 18px; }
+html.a11y-large .art-sum,
+html.a11y-large .feature-sum { font-size: 16px; }
+html.a11y-large .nl-date,
+html.a11y-large .art-meta,
+html.a11y-large .meta { font-size: 15px; }
 
 /* 管理端侧栏 */
 .admin-aside {

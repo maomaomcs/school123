@@ -4,7 +4,7 @@
     <div class="section-title"><h2>师资队伍</h2></div>
     <div class="grid" v-if="list.length">
       <div v-for="t in list" :key="t.id" class="tc card-hover">
-        <img :src="t.photo || '/img/avatar.svg'" :alt="t.name" />
+        <img :src="t.photo || '/img/avatar.svg'" :alt="t.name" loading="lazy" />
         <div class="info">
           <div class="name serif">{{ t.name }}</div>
           <div class="tt">{{ t.title }}</div>

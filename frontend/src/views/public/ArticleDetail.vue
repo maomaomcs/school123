@@ -39,6 +39,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getArticle } from '../../api'
+import { setMeta } from '../../utils/meta'
 import { View } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -47,7 +48,14 @@ const loading = ref(false)
 
 async function load() {
   loading.value = true
-  try { art.value = await getArticle(route.params.id) } finally { loading.value = false }
+  try {
+    art.value = await getArticle(route.params.id)
+    setMeta({
+      title: art.value.title,
+      description: art.value.summary || art.value.content,
+      image: art.value.cover || undefined,
+    })
+  } finally { loading.value = false }
 }
 function fmt(s) { return s ? String(s).slice(0, 16).replace('T', ' ') : '' }
 

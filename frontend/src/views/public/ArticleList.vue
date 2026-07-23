@@ -5,13 +5,14 @@
     </div>
     <div class="section-title">
       <h2>{{ data.categoryLabel }}</h2>
+      <span class="total" v-if="data.total">共 {{ data.total }} 条</span>
     </div>
 
     <div v-loading="loading">
       <ul class="art-list" v-if="data.list && data.list.length">
         <li v-for="a in data.list" :key="a.id" class="art-item card-hover">
           <router-link :to="`/article/${a.id}`" class="art-cover">
-            <img :src="a.cover || '/img/news-default.svg'" :alt="a.title" />
+            <img :src="a.cover || '/img/news-default.svg'" :alt="a.title" loading="lazy" />
           </router-link>
           <div class="art-body">
             <router-link :to="`/article/${a.id}`" class="art-title serif">
@@ -46,6 +47,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getArticles } from '../../api'
+import { setMeta } from '../../utils/meta'
 import { Calendar, View } from '@element-plus/icons-vue'
 
 const route = useRoute()
@@ -58,6 +60,7 @@ async function load() {
   loading.value = true
   try {
     data.value = await getArticles({ category: route.params.category, page: page.value, size: pageSize })
+    setMeta({ title: data.value.categoryLabel })
   } finally {
     loading.value = false
   }
@@ -72,6 +75,7 @@ onMounted(load)
 <style scoped>
 .list-page { padding: 24px 16px 40px; }
 .crumb { font-size: 13px; color: #8a7f72; margin-bottom: 14px; }
+.total { font-size: 13px; color: #8a7f72; }
 .art-list { list-style: none; margin: 0; padding: 0; }
 .art-item { display: flex; gap: 18px; background: #fff; border-radius: 10px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
 .art-cover { flex: 0 0 200px; height: 130px; border-radius: 8px; overflow: hidden; }

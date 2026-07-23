@@ -1,7 +1,7 @@
 <template>
-  <div class="home">
+  <div class="home" v-loading="loading">
     <!-- 轮播 -->
-    <el-carousel height="440px" :interval="5000" arrow="hover" class="banner">
+    <el-carousel v-if="data.banners && data.banners.length" height="440px" :interval="5000" arrow="hover" class="banner">
       <el-carousel-item v-for="b in data.banners" :key="b.id">
         <a v-if="b.link" class="banner-item" :href="b.link" target="_blank" rel="noopener">
           <img :src="b.imageUrl" :alt="b.title" />
@@ -107,7 +107,7 @@
         </div>
         <div class="gallery">
           <router-link v-for="g in data.gallery" :key="g.id" :to="`/article/${g.id}`" class="g-item card-hover">
-            <img :src="g.cover || '/img/news-default.svg'" :alt="g.title" />
+            <img :src="g.cover || '/img/news-default.svg'" :alt="g.title" loading="lazy" />
             <div class="g-title">{{ g.title }}</div>
           </router-link>
         </div>
@@ -121,7 +121,7 @@
         </div>
         <div class="teacher-grid">
           <div v-for="t in data.teachers" :key="t.id" class="t-card card-hover">
-            <img :src="t.photo || '/img/avatar.svg'" :alt="t.name" />
+            <img :src="t.photo || '/img/avatar.svg'" :alt="t.name" loading="lazy" />
             <div class="t-name serif">{{ t.name }}</div>
             <div class="t-title">{{ t.title }}</div>
             <div class="t-subject">{{ t.subject }}</div>
@@ -138,6 +138,7 @@ import { getHome } from '../../api'
 import { Reading, Bell, School, Trophy, Postcard, Message } from '@element-plus/icons-vue'
 
 const data = ref({ banners: [], sections: {}, teachers: [], gallery: [] })
+const loading = ref(false)
 const sections = computed(() => data.value.sections || {})
 const newsList = computed(() => sections.value.xwzx || [])
 const firstNews = computed(() => newsList.value[0])
@@ -156,10 +157,11 @@ const quickLinks = [
 function fmt(s) { return s ? String(s).slice(0, 10) : '' }
 function fmtShort(s) { return s ? String(s).slice(5, 10) : '' }
 function day(s) { return s ? String(s).slice(8, 10) : '' }
-function month(s) { return s ? String(s).slice(0, 7) : '' }
+function month(s) { return s ? String(s).slice(5, 7) + '月' : '' }
 
 onMounted(async () => {
-  try { data.value = await getHome() } catch (e) {}
+  loading.value = true
+  try { data.value = await getHome() } catch (e) {} finally { loading.value = false }
 })
 </script>
 
@@ -234,6 +236,9 @@ onMounted(async () => {
 .t-subject { font-size: 13px; color: var(--shishi-red); margin-top: 4px; }
 
 @media (max-width: 860px) {
+  .banner :deep(.el-carousel__container) { height: 200px !important; }
+  .bc-title { font-size: 22px; }
+  .banner-caption { left: 6%; bottom: 12%; }
   .quick-links { grid-template-columns: repeat(3, 1fr); }
   .news-row { grid-template-columns: 1fr; }
   .feature { flex-direction: column; }
@@ -241,7 +246,6 @@ onMounted(async () => {
   .gallery { grid-template-columns: 1fr 1fr; }
   .g-item img { height: 130px; }
   .teacher-grid { grid-template-columns: repeat(3, 1fr); }
-  .bc-title { font-size: 26px; }
   .bc-sub { font-size: 15px; }
 }
 </style>

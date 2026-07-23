@@ -14,6 +14,7 @@
 import { ref, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getPage } from '../../api'
+import { setMeta } from '../../utils/meta'
 
 const route = useRoute()
 const page = ref({})
@@ -23,7 +24,7 @@ async function load() {
   loading.value = true
   try { page.value = await getPage(route.params.key) }
   catch (e) { page.value = { title: '页面', content: '<p>内容尚未发布</p>' } }
-  finally { loading.value = false }
+  finally { loading.value = false; setMeta({ title: page.value.title, description: page.value.content }) }
 }
 watch(() => route.params.key, load)
 onMounted(load)

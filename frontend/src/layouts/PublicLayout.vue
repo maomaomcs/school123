@@ -17,7 +17,13 @@
             </template>
           </el-input>
         </div>
-        <div class="motto serif">校训 · 爱国利民</div>
+        <div class="header-right">
+          <button class="a11y-toggle serif" :class="{ on: fontLarge }" @click="toggleFont"
+                  :title="fontLarge ? '恢复标准字号' : '切换大字号,方便长辈阅读'">
+            {{ fontLarge ? '标准字号' : '大字版' }}
+          </button>
+          <div class="motto serif">校训 · 爱国利民</div>
+        </div>
         <el-button class="menu-toggle" :icon="Menu" text @click="drawer = true" />
       </div>
 
@@ -105,11 +111,15 @@
         </div>
         <div class="footer-copy">
           <div>© {{ year }} {{ config.siteName || '成都市石室联中132学校' }} 版权所有</div>
-          <div v-if="config.beian">{{ config.beian }}</div>
-          <div style="opacity:.6;font-size:12px;margin-top:4px">本站为演示站点,内容可在后台管理系统中维护</div>
+          <div v-if="config.beian">
+            <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">{{ config.beian }}</a>
+          </div>
         </div>
       </div>
     </footer>
+
+    <!-- 回到顶部 -->
+    <el-backtop :right="24" :bottom="24" :visibility-height="300" />
   </div>
 </template>
 
@@ -125,6 +135,16 @@ const drawer = ref(false)
 const config = ref({})
 const kw = ref('')
 const year = new Date().getFullYear()
+const fontLarge = ref(false)
+
+function applyFont() {
+  document.documentElement.classList.toggle('a11y-large', fontLarge.value)
+}
+function toggleFont() {
+  fontLarge.value = !fontLarge.value
+  localStorage.setItem('a11y_large', fontLarge.value ? '1' : '0')
+  applyFont()
+}
 
 function doSearch() {
   const q = kw.value.trim()
@@ -149,6 +169,8 @@ const activePath = computed(() => {
 })
 
 onMounted(async () => {
+  fontLarge.value = localStorage.getItem('a11y_large') === '1'
+  applyFont()
   try {
     config.value = await getConfig()
   } catch (e) {}
@@ -175,8 +197,22 @@ onMounted(async () => {
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand-cn { font-size: 24px; color: var(--shishi-red-deep); font-weight: 700; letter-spacing: 2px; }
 .brand-en { font-size: 12px; color: #9a8f80; letter-spacing: 1px; }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.a11y-toggle {
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--shishi-gold);
+  color: var(--shishi-gold);
+  font-size: 13px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  transition: all .2s ease;
+}
+.a11y-toggle:hover, .a11y-toggle.on {
+  background: var(--shishi-gold);
+  color: #fff;
+}
 .motto {
-  margin-left: auto;
   color: var(--shishi-gold);
   font-size: 16px;
   border-left: 2px solid var(--shishi-gold);
@@ -228,6 +264,7 @@ onMounted(async () => {
 
 @media (max-width: 860px) {
   .motto { display: none; }
+  .a11y-toggle { display: none; }
   .header-search { display: none; }
   .menu-toggle { display: inline-flex; }
   .site-nav { display: none; }
