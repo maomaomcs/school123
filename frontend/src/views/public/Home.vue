@@ -29,11 +29,22 @@
         </router-link>
       </div>
 
+      <!-- 数说石室联中132 -->
+      <section class="stats-band">
+        <div class="stats-head serif">数说石室联中132 <span class="en">CNU132 by the Numbers</span></div>
+        <div class="stats-grid">
+          <div class="stat" v-for="s in stats" :key="s.label">
+            <div class="stat-num serif">{{ s.num }}<span class="unit">{{ s.unit }}</span></div>
+            <div class="stat-label">{{ s.label }}</div>
+          </div>
+        </div>
+      </section>
+
       <!-- 新闻 + 通知 -->
       <div class="news-row">
         <section class="news-block">
           <div class="section-title">
-            <h2>校园新闻</h2>
+            <h2>校园新闻 <span class="en">Campus News</span></h2>
             <router-link class="more" to="/list/xwzx">更多 +</router-link>
           </div>
           <div class="feature" v-if="firstNews">
@@ -56,7 +67,7 @@
 
         <section class="notice-block">
           <div class="section-title">
-            <h2>通知公告</h2>
+            <h2>通知公告 <span class="en">Notices</span></h2>
             <router-link class="more" to="/list/tzgg">更多 +</router-link>
           </div>
           <ul class="notice-list">
@@ -75,7 +86,7 @@
       <div class="news-row">
         <section class="news-block">
           <div class="section-title">
-            <h2>教育教学</h2>
+            <h2>教育教学 <span class="en">Teaching</span></h2>
             <router-link class="more" to="/list/jyjx">更多 +</router-link>
           </div>
           <ul class="news-list">
@@ -87,7 +98,7 @@
         </section>
         <section class="news-block">
           <div class="section-title">
-            <h2>德育天地</h2>
+            <h2>德育天地 <span class="en">Moral Education</span></h2>
             <router-link class="more" to="/list/dycd">更多 +</router-link>
           </div>
           <ul class="news-list">
@@ -102,7 +113,7 @@
       <!-- 校园风采 -->
       <section class="gallery-sec">
         <div class="section-title">
-          <h2>校园风采</h2>
+          <h2>校园风采 <span class="en">Campus Life</span></h2>
           <router-link class="more" to="/list/xyfc">更多 +</router-link>
         </div>
         <div class="gallery">
@@ -116,7 +127,7 @@
       <!-- 师资预览 -->
       <section class="teacher-sec" v-if="data.teachers && data.teachers.length">
         <div class="section-title">
-          <h2>名师风采</h2>
+          <h2>名师风采 <span class="en">Our Teachers</span></h2>
           <router-link class="more" to="/teachers">全部师资 +</router-link>
         </div>
         <div class="teacher-grid">
@@ -144,6 +155,15 @@ const newsList = computed(() => sections.value.xwzx || [])
 const firstNews = computed(() => newsList.value[0])
 const restNews = computed(() => newsList.value.slice(1, 6))
 const notices = computed(() => (sections.value.tzgg || []).slice(0, 6))
+
+// 数说学校(占位数据,请按学校实际调整)
+const stats = [
+  { num: '2022', unit: '年', label: '创办年份' },
+  { num: '9', unit: '年', label: '一贯制学制' },
+  { num: '40', unit: '+', label: '教学班' },
+  { num: '2000', unit: '+', label: '在校师生' },
+  { num: '3', unit: '大', label: '特色育人体系' },
+]
 
 const quickLinks = [
   { to: '/page/intro', label: '学校简介', icon: School },
@@ -178,6 +198,27 @@ onMounted(async () => {
 
 .quick-links {
   display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-bottom: 28px;
+}
+
+/* 数说学校 */
+.stats-band {
+  background: linear-gradient(135deg, var(--shishi-red-deep), var(--shishi-red));
+  border-radius: 12px; padding: 24px 20px; margin-bottom: 30px;
+  box-shadow: 0 4px 18px rgba(122, 21, 25, .25);
+}
+.stats-head { color: #fff; font-size: 20px; text-align: center; margin-bottom: 18px; letter-spacing: 1px; }
+.stats-head .en { font-size: 13px; color: #f0d9a8; font-weight: 400; margin-left: 8px; letter-spacing: 1px; }
+.stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.stat { text-align: center; color: #fff; position: relative; }
+.stat + .stat::before { content: ""; position: absolute; left: 0; top: 20%; bottom: 20%; width: 1px; background: rgba(255,255,255,.18); }
+.stat-num { font-size: 40px; font-weight: 700; color: var(--shishi-gold); line-height: 1.1; }
+.stat-num .unit { font-size: 16px; margin-left: 2px; color: #f0d9a8; }
+.stat-label { font-size: 14px; margin-top: 6px; color: #f6e2c9; letter-spacing: 1px; }
+
+/* 栏目中英文副标题 */
+.section-title h2 .en {
+  font-size: 13px; color: #b7ab97; font-weight: 400; margin-left: 8px;
+  font-family: Arial, sans-serif; letter-spacing: 1px;
 }
 .ql {
   background: #fff; border-radius: 10px; padding: 20px 8px; text-align: center;
@@ -237,6 +278,9 @@ onMounted(async () => {
 
 @media (max-width: 860px) {
   .banner :deep(.el-carousel__container) { height: 200px !important; }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 18px 8px; }
+  .stat:nth-child(4)::before, .stat + .stat::before { display: none; }
+  .stat-num { font-size: 30px; }
   .bc-title { font-size: 22px; }
   .banner-caption { left: 6%; bottom: 12%; }
   .quick-links { grid-template-columns: repeat(3, 1fr); }
