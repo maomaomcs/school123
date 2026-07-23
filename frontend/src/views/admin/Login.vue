@@ -15,6 +15,9 @@
         <el-form-item>
           <el-input v-model="form.password" size="large" type="password" show-password placeholder="密码" :prefix-icon="Lock" />
         </el-form-item>
+        <el-form-item>
+          <el-checkbox v-model="remember">记住密码</el-checkbox>
+        </el-form-item>
         <el-button type="primary" size="large" style="width:100%" :loading="loading" @click="login">登 录</el-button>
       </el-form>
       <div class="tip">仅限授权管理员登录</div>
@@ -23,7 +26,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
@@ -32,7 +35,22 @@ import { adminLogin } from '../../api'
 const router = useRouter()
 const route = useRoute()
 const loading = ref(false)
+const remember = ref(false)
 const form = reactive({ username: '', password: '' })
+
+const SAVE_KEY = 'saved_admin_login'
+
+onMounted(() => {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY)
+    if (raw) {
+      const { u, p } = JSON.parse(decodeURIComponent(atob(raw)))
+      form.username = u || ''
+      form.password = p || ''
+      remember.value = true
+    }
+  } catch (e) { /* ignore */ }
+})
 
 async function login() {
   if (!form.username || !form.password) { ElMessage.warning('请输入账号和密码'); return }
@@ -42,6 +60,11 @@ async function login() {
     localStorage.setItem('admin_token', res.token)
     localStorage.setItem('admin_role', res.role || 'EDITOR')
     localStorage.setItem('admin_name', res.displayName || res.username)
+    if (remember.value) {
+      localStorage.setItem(SAVE_KEY, btoa(encodeURIComponent(JSON.stringify({ u: form.username, p: form.password }))))
+    } else {
+      localStorage.removeItem(SAVE_KEY)
+    }
     ElMessage.success('登录成功')
     router.replace(route.query.redirect || '/admin/articles')
   } finally { loading.value = false }
