@@ -117,14 +117,19 @@ const dirty = computed(() => snapshot !== '' && snapKey() !== snapshot)
 
 function onCover(res) { form.cover = res.url; ElMessage.success('封面已上传') }
 
+// 保存但不跳转(供离开守卫复用)
+async function persist(action) {
+  if (isNew.value) await adminCreateArticle({ ...form }, action)
+  else await adminUpdateArticle(route.params.id, { ...form }, action)
+  markClean()
+}
+
 async function save(action) {
   if (!form.title || !form.category) { ElMessage.warning('请填写标题和栏目'); return }
   saving.value = true
   try {
-    if (isNew.value) await adminCreateArticle({ ...form }, action)
-    else await adminUpdateArticle(route.params.id, { ...form }, action)
+    await persist(action)
     ElMessage.success(action === 'submit' ? '已提交审核' : (action === 'publish' ? '已发布' : '已保存草稿'))
-    markClean() // 已保存,离开不再提醒
     router.push('/admin/articles')
   } finally { saving.value = false }
 }
@@ -144,12 +149,34 @@ onMounted(async () => {
 
 onBeforeRouteLeave(async () => {
   if (!dirty.value) return true
+  // 缺标题/栏目无法存草稿,退化为放弃/继续
+  if (!form.title || !form.category) {
+    try {
+      await ElMessageBox.confirm('有未保存的修改(缺标题或栏目,无法存草稿)。确定放弃并离开?', '提示', {
+        type: 'warning', confirmButtonText: '放弃并离开', cancelButtonText: '继续编辑',
+      })
+      return true
+    } catch (e) { return false }
+  }
+  // 三选一:存草稿并离开 / 放弃修改并离开 / 继续编辑(关闭)
   try {
-    await ElMessageBox.confirm('有未保存的修改,确定离开?', '提示', {
-      type: 'warning', confirmButtonText: '放弃并离开', cancelButtonText: '继续编辑',
+    await ElMessageBox({
+      title: '离开提示',
+      message: '有未保存的修改,离开前是否存为草稿?',
+      showCancelButton: true,
+      distinguishCancelAndClose: true,
+      confirmButtonText: '存草稿并离开',
+      cancelButtonText: '放弃修改并离开',
+      type: 'warning',
     })
+    // 确定 → 存草稿
+    saving.value = true
+    try { await persist('draft'); ElMessage.success('已存草稿') } finally { saving.value = false }
     return true
-  } catch (e) { return false }
+  } catch (action) {
+    if (action === 'cancel') return true // 放弃并离开
+    return false // 关闭/ESC → 继续编辑
+  }
 })
 </script>
 

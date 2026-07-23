@@ -80,9 +80,17 @@ function sync() {
 async function beforeLeaveTab() {
   if (!dirty.value) return true
   try {
-    await ElMessageBox.confirm('当前页面有未保存的修改,切换将丢失,确定切换?', '提示', { type: 'warning', confirmButtonText: '放弃修改', cancelButtonText: '继续编辑' })
+    await ElMessageBox({
+      title: '切换提示', message: '当前页面有未保存的修改,切换前是否保存?',
+      showCancelButton: true, distinguishCancelAndClose: true,
+      confirmButtonText: '保存并切换', cancelButtonText: '放弃修改并切换', type: 'warning',
+    })
+    await save() // 确定 → 先保存
     return true
-  } catch (e) { return false }
+  } catch (action) {
+    if (action === 'cancel') return true // 放弃并切换
+    return false // 关闭/ESC → 继续编辑
+  }
 }
 
 async function load() {
@@ -109,9 +117,17 @@ watch(active, sync)
 onBeforeRouteLeave(async () => {
   if (!dirty.value) return true
   try {
-    await ElMessageBox.confirm('有未保存的修改,确定离开?', '提示', { type: 'warning', confirmButtonText: '放弃并离开', cancelButtonText: '继续编辑' })
+    await ElMessageBox({
+      title: '离开提示', message: '有未保存的修改,离开前是否保存?',
+      showCancelButton: true, distinguishCancelAndClose: true,
+      confirmButtonText: '保存并离开', cancelButtonText: '放弃修改并离开', type: 'warning',
+    })
+    await save() // 确定 → 保存
     return true
-  } catch (e) { return false }
+  } catch (action) {
+    if (action === 'cancel') return true // 放弃并离开
+    return false // 关闭/ESC → 继续编辑
+  }
 })
 
 onMounted(load)
