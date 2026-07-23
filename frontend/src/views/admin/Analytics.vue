@@ -76,6 +76,19 @@
       </div>
     </div>
 
+    <!-- 访问地区 -->
+    <div class="panel">
+      <div class="p-title">访问地区 Top(按 IP 归属地)</div>
+      <ul class="rank" v-if="data.regions?.length">
+        <li v-for="(r, i) in data.regions" :key="i">
+          <span class="r-name" :title="r.name">{{ r.name }}</span>
+          <div class="r-bar"><div :style="{ width: pct(r.count, maxRegion) + '%' }"></div></div>
+          <span class="r-num">{{ r.count }}</span>
+        </li>
+      </ul>
+      <el-empty v-else description="暂无数据" :image-size="70" />
+    </div>
+
     <!-- 设备 -->
     <div class="panel">
       <div class="p-title">访问设备</div>
@@ -105,6 +118,7 @@ const trend = computed(() => data.value.trend || [])
 const maxTrend = computed(() => Math.max(1, ...trend.value.map(t => Math.max(t.pv, t.uv))))
 const maxRef = computed(() => Math.max(1, ...(data.value.referers || []).map(r => r.count)))
 const maxPage = computed(() => Math.max(1, ...(data.value.pages || []).map(p => p.count)))
+const maxRegion = computed(() => Math.max(1, ...(data.value.regions || []).map(r => r.count)))
 const devTotal = computed(() => (data.value.devices || []).reduce((s, d) => s + d.count, 0) || 1)
 
 function barH(v) { return Math.round((v / maxTrend.value) * 120) }

@@ -37,6 +37,11 @@ public interface VisitLogRepository extends JpaRepository<VisitLog, Long> {
     @Query("select v.device, count(v) from VisitLog v where v.day >= :from group by v.device")
     List<Object[]> deviceSplit(@Param("from") LocalDate from);
 
+    /** 访问地区 Top:[region, pv] */
+    @Query("select v.region, count(v) from VisitLog v where v.day >= :from " +
+            "group by v.region order by count(v) desc")
+    List<Object[]> topRegions(@Param("from") LocalDate from, Pageable pageable);
+
     /** 范围内总 PV / UV */
     long countByDayGreaterThanEqual(LocalDate from);
 
