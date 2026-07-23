@@ -22,6 +22,11 @@
                   :title="fontLarge ? '恢复标准字号' : '切换大字号,方便长辈阅读'">
             {{ fontLarge ? '标准字号' : '大字版' }}
           </button>
+          <template v-if="loggedIn">
+            <a class="nav-auth" @click="goAdmin">进入管理</a>
+            <a class="nav-auth ghost" @click="doLogout">登出</a>
+          </template>
+          <router-link v-else class="nav-auth" to="/admin/login">登录</router-link>
           <div class="motto serif">校训 · 爱国利民</div>
         </div>
         <el-button class="menu-toggle" :icon="Menu" text @click="drawer = true" />
@@ -81,6 +86,15 @@
         <el-menu-item index="/list/zsks">招生招考</el-menu-item>
         <el-menu-item index="/contact">联系我们</el-menu-item>
       </el-menu>
+      <div class="drawer-auth">
+        <template v-if="loggedIn">
+          <el-button type="primary" plain @click="goAdmin">进入管理后台</el-button>
+          <el-button @click="doLogout">登出</el-button>
+        </template>
+        <router-link v-else to="/admin/login" @click="drawer = false">
+          <el-button type="primary" plain style="width:100%">管理员登录</el-button>
+        </router-link>
+      </div>
     </el-drawer>
 
     <!-- 主体 -->
@@ -126,8 +140,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { Menu, Search } from '@element-plus/icons-vue'
-import { getConfig } from '../api'
+import { getConfig, adminLogout } from '../api'
 
 const route = useRoute()
 const router = useRouter()
@@ -136,6 +151,21 @@ const config = ref({})
 const kw = ref('')
 const year = new Date().getFullYear()
 const fontLarge = ref(false)
+const loggedIn = ref(false)
+
+function refreshAuth() { loggedIn.value = !!localStorage.getItem('admin_token') }
+
+function goAdmin() { drawer.value = false; router.push('/admin/articles') }
+
+async function doLogout() {
+  try { await adminLogout() } catch (e) { /* ignore */ }
+  localStorage.removeItem('admin_token')
+  localStorage.removeItem('admin_role')
+  localStorage.removeItem('admin_name')
+  refreshAuth()
+  drawer.value = false
+  ElMessage.success('已登出')
+}
 
 function applyFont() {
   document.documentElement.classList.toggle('a11y-large', fontLarge.value)
@@ -171,6 +201,7 @@ const activePath = computed(() => {
 onMounted(async () => {
   fontLarge.value = localStorage.getItem('a11y_large') === '1'
   applyFont()
+  refreshAuth()
   try {
     config.value = await getConfig()
   } catch (e) {}
@@ -212,6 +243,20 @@ onMounted(async () => {
   background: var(--shishi-gold);
   color: #fff;
 }
+.nav-auth {
+  cursor: pointer;
+  font-size: 13px;
+  padding: 5px 14px;
+  border-radius: 16px;
+  background: var(--shishi-red);
+  color: #fff;
+  white-space: nowrap;
+}
+.nav-auth:hover { background: var(--shishi-red-deep); color: #fff; }
+.nav-auth.ghost { background: transparent; color: var(--shishi-red); border: 1px solid var(--shishi-red); }
+.nav-auth.ghost:hover { background: var(--shishi-red); color: #fff; }
+.drawer-auth { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid #eee5d3; margin-top: 8px; }
+.drawer-auth .el-button { flex: 1; }
 .motto {
   color: var(--shishi-gold);
   font-size: 16px;
