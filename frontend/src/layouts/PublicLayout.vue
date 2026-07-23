@@ -22,11 +22,6 @@
                   :title="fontLarge ? '恢复标准字号' : '切换大字号,方便长辈阅读'">
             {{ fontLarge ? '标准字号' : '大字版' }}
           </button>
-          <template v-if="loggedIn">
-            <a class="nav-auth" @click="goAdmin">进入管理</a>
-            <a class="nav-auth ghost" @click="doLogout">登出</a>
-          </template>
-          <router-link v-else class="nav-auth" to="/admin/login">登录</router-link>
           <div class="motto serif">校训 · 爱国利民</div>
         </div>
         <el-button class="menu-toggle" :icon="Menu" text @click="drawer = true" />
@@ -35,7 +30,7 @@
       <!-- 桌面导航 -->
       <nav class="site-nav">
         <div class="container nav-inner">
-          <el-menu mode="horizontal" :ellipsis="false" router :default-active="activePath" class="nav-menu">
+          <el-menu mode="horizontal" :ellipsis="false" :default-active="activePath" class="nav-menu" @select="onNavSelect">
             <el-menu-item index="/">首页</el-menu-item>
             <el-sub-menu index="about">
               <template #title>学校概况</template>
@@ -54,6 +49,9 @@
             <el-menu-item index="/list/xyfc">校园风采</el-menu-item>
             <el-menu-item index="/list/zsks">招生招考</el-menu-item>
             <el-menu-item index="/contact">联系我们</el-menu-item>
+            <el-menu-item v-if="!loggedIn" index="/admin/login">登录</el-menu-item>
+            <el-menu-item v-if="loggedIn" index="__admin__">进入管理</el-menu-item>
+            <el-menu-item v-if="loggedIn" index="__logout__">登出</el-menu-item>
           </el-menu>
         </div>
       </nav>
@@ -66,7 +64,7 @@
           <template #append><el-button :icon="Search" @click="doSearchMobile" /></template>
         </el-input>
       </div>
-      <el-menu router :default-active="activePath" @select="drawer = false">
+      <el-menu :default-active="activePath" @select="onNavSelect">
         <el-menu-item index="/">首页</el-menu-item>
         <el-sub-menu index="about">
           <template #title>学校概况</template>
@@ -85,16 +83,10 @@
         <el-menu-item index="/list/xyfc">校园风采</el-menu-item>
         <el-menu-item index="/list/zsks">招生招考</el-menu-item>
         <el-menu-item index="/contact">联系我们</el-menu-item>
+        <el-menu-item v-if="!loggedIn" index="/admin/login">登录</el-menu-item>
+        <el-menu-item v-if="loggedIn" index="__admin__">进入管理</el-menu-item>
+        <el-menu-item v-if="loggedIn" index="__logout__">登出</el-menu-item>
       </el-menu>
-      <div class="drawer-auth">
-        <template v-if="loggedIn">
-          <el-button type="primary" plain @click="goAdmin">进入管理后台</el-button>
-          <el-button @click="doLogout">登出</el-button>
-        </template>
-        <router-link v-else to="/admin/login" @click="drawer = false">
-          <el-button type="primary" plain style="width:100%">管理员登录</el-button>
-        </router-link>
-      </div>
     </el-drawer>
 
     <!-- 主体 -->
@@ -155,7 +147,13 @@ const loggedIn = ref(false)
 
 function refreshAuth() { loggedIn.value = !!localStorage.getItem('admin_token') }
 
-function goAdmin() { drawer.value = false; router.push('/admin/articles') }
+// 导航菜单选择:登出/进入管理为特殊项,其余按路径跳转
+function onNavSelect(index) {
+  drawer.value = false
+  if (index === '__logout__') { doLogout(); return }
+  if (index === '__admin__') { router.push('/admin/articles'); return }
+  if (index && index.startsWith('/')) router.push(index)
+}
 
 async function doLogout() {
   try { await adminLogout() } catch (e) { /* ignore */ }
@@ -243,20 +241,6 @@ onMounted(async () => {
   background: var(--shishi-gold);
   color: #fff;
 }
-.nav-auth {
-  cursor: pointer;
-  font-size: 13px;
-  padding: 5px 14px;
-  border-radius: 16px;
-  background: var(--shishi-red);
-  color: #fff;
-  white-space: nowrap;
-}
-.nav-auth:hover { background: var(--shishi-red-deep); color: #fff; }
-.nav-auth.ghost { background: transparent; color: var(--shishi-red); border: 1px solid var(--shishi-red); }
-.nav-auth.ghost:hover { background: var(--shishi-red); color: #fff; }
-.drawer-auth { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid #eee5d3; margin-top: 8px; }
-.drawer-auth .el-button { flex: 1; }
 .motto {
   color: var(--shishi-gold);
   font-size: 16px;
