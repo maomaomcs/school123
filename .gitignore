@@ -1,0 +1,11 @@
+node_modules/
+frontend/node_modules/
+backend/target/
+backend/data/
+*.log
+_smoketest.txt
+
+# 部署脚本含服务器 SSH/DB 密码,禁止入库
+deploy/
+*.bak
+*.bak.*

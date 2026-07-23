@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="600" viewBox="0 0 1600 600">
+  <defs>
+    <linearGradient id="g3" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#a4232a"/>
+      <stop offset="1" stop-color="#5e1013"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="600" fill="url(#g3)"/>
+  <g opacity="0.14" fill="#f6f1e7">
+    <circle cx="300" cy="160" r="120"/>
+    <circle cx="500" cy="120" r="70"/>
+    <circle cx="1250" cy="480" r="180"/>
+  </g>
+  <text x="120" y="300" font-family="STSong,'Noto Serif SC',serif" font-size="92" font-weight="700" fill="#f6f1e7">多彩校园</text>
+  <text x="120" y="410" font-family="STSong,'Noto Serif SC',serif" font-size="60" fill="#f0d9a8">五育并举 · 全面发展</text>
+</svg>

@@ -1,0 +1,7 @@
+﻿node : ERR browser.newContext: Target page, context or browser has been closed
+所在位置 行:1 字符: 1
++ node mobile-check.js 2>&1 | Out-File -Encoding utf8 mc-log.txt; Get-C ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ERR browser.new...has been closed:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
