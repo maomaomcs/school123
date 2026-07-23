@@ -26,15 +26,25 @@ public class AdminController {
     private final TeacherRepository teacherRepo;
     private final SinglePageRepository pageRepo;
     private final MessageRepository messageRepo;
+    private final com.school.site.service.AnalyticsService analyticsService;
 
     public AdminController(AuthService authService, ArticleRepository articleRepo, BannerRepository bannerRepo,
-                           TeacherRepository teacherRepo, SinglePageRepository pageRepo, MessageRepository messageRepo) {
+                           TeacherRepository teacherRepo, SinglePageRepository pageRepo, MessageRepository messageRepo,
+                           com.school.site.service.AnalyticsService analyticsService) {
         this.authService = authService;
         this.articleRepo = articleRepo;
         this.bannerRepo = bannerRepo;
         this.teacherRepo = teacherRepo;
         this.pageRepo = pageRepo;
         this.messageRepo = messageRepo;
+        this.analyticsService = analyticsService;
+    }
+
+    // ---------- 流量统计(仅校宣) ----------
+    @GetMapping("/analytics")
+    public Map<String, Object> analytics(HttpServletRequest req, @RequestParam(defaultValue = "7") int days) {
+        requireAdmin(current(req));
+        return analyticsService.stats(days);
     }
 
     // ---------- 当前用户 / 权限 ----------

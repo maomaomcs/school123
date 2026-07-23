@@ -13,6 +13,7 @@
           <el-menu-item index="/admin/teachers"><el-icon><Avatar /></el-icon><span>师资队伍</span></el-menu-item>
           <el-menu-item index="/admin/pages"><el-icon><Files /></el-icon><span>单页内容</span></el-menu-item>
           <el-menu-item index="/admin/messages"><el-icon><ChatDotRound /></el-icon><span>留言管理</span></el-menu-item>
+          <el-menu-item index="/admin/analytics"><el-icon><DataLine /></el-icon><span>数据统计</span></el-menu-item>
           <el-menu-item index="/admin/accounts"><el-icon><UserFilled /></el-icon><span>账号管理</span></el-menu-item>
         </template>
         <el-menu-item index="/admin/password"><el-icon><Key /></el-icon><span>修改密码</span></el-menu-item>
@@ -34,6 +35,7 @@
             <el-menu-item index="/admin/teachers"><el-icon><Avatar /></el-icon><span>师资队伍</span></el-menu-item>
             <el-menu-item index="/admin/pages"><el-icon><Files /></el-icon><span>单页内容</span></el-menu-item>
             <el-menu-item index="/admin/messages"><el-icon><ChatDotRound /></el-icon><span>留言管理</span></el-menu-item>
+            <el-menu-item index="/admin/analytics"><el-icon><DataLine /></el-icon><span>数据统计</span></el-menu-item>
             <el-menu-item index="/admin/accounts"><el-icon><UserFilled /></el-icon><span>账号管理</span></el-menu-item>
           </template>
           <el-menu-item index="/admin/password"><el-icon><Key /></el-icon><span>修改密码</span></el-menu-item>
@@ -65,7 +67,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Document, PictureFilled, Avatar, Files, ChatDotRound, Key, TopRight, UserFilled, Fold } from '@element-plus/icons-vue'
+import { Document, PictureFilled, Avatar, Files, ChatDotRound, Key, TopRight, UserFilled, Fold, DataLine } from '@element-plus/icons-vue'
 import { adminMe, adminLogout } from '../api'
 
 const route = useRoute()

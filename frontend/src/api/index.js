@@ -40,6 +40,7 @@ export const searchArticles = (params) => api.get('/search', { params })
 export const getTeachers = () => api.get('/teachers')
 export const getPage = (key) => api.get(`/pages/${key}`)
 export const submitMessage = (data) => api.post('/messages', data)
+export const trackVisit = (payload) => api.post('/track', payload)
 
 // ---------- 管理接口 ----------
 export const adminLogin = (data) => api.post('/admin/login', data)
@@ -78,5 +79,7 @@ export const adminSavePage = (key, data) => api.put(`/admin/pages/${key}`, data)
 export const adminMessages = () => api.get('/admin/messages')
 export const adminHandleMessage = (id, handled) => api.put(`/admin/messages/${id}/handled`, null, { params: { handled } })
 export const adminDeleteMessage = (id) => api.delete(`/admin/messages/${id}`)
+
+export const adminAnalytics = (days = 7) => api.get('/admin/analytics', { params: { days } })
 
 export const uploadUrl = '/api/admin/upload'

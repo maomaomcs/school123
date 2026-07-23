@@ -34,6 +34,7 @@ public class PublicController {
     private final TeacherRepository teacherRepo;
     private final SinglePageRepository pageRepo;
     private final MessageRepository messageRepo;
+    private final com.school.site.service.AnalyticsService analyticsService;
 
     @Value("${app.site-name}")
     private String siteName;
@@ -44,12 +45,27 @@ public class PublicController {
 
     public PublicController(ArticleRepository articleRepo, BannerRepository bannerRepo,
                             TeacherRepository teacherRepo, SinglePageRepository pageRepo,
-                            MessageRepository messageRepo) {
+                            MessageRepository messageRepo,
+                            com.school.site.service.AnalyticsService analyticsService) {
         this.articleRepo = articleRepo;
         this.bannerRepo = bannerRepo;
         this.teacherRepo = teacherRepo;
         this.pageRepo = pageRepo;
         this.messageRepo = messageRepo;
+        this.analyticsService = analyticsService;
+    }
+
+    /** 前台访问打点(SPA 每次换页上报),失败静默不影响用户 */
+    @PostMapping("/track")
+    public Map<String, Object> track(@RequestBody(required = false) Map<String, String> body,
+                                     jakarta.servlet.http.HttpServletRequest req) {
+        try {
+            String path = body == null ? null : body.get("path");
+            String referrer = body == null ? null : body.get("referrer");
+            analyticsService.record(req, path, referrer);
+        } catch (Exception ignored) {
+        }
+        return Map.of("ok", true);
     }
 
     @GetMapping("/config")
